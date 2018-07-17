@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>
+            Snake Game
+        </title>
+    </head>
+    <body>
+        <div id="score">0</div>
+        <canvas id="gameCanvas" width="500" height="500"></canvas>
+
+        <script>
+            const CANVAS_BORDER_COLOR = 'black';
+            const CANVAS_BACKGROUND_COLOR = 'white';
+            const squareSize = 10;
+            //Canvas element
+            var gameCanvas = document.getElementById("gameCanvas");
+
+            document.addEventListener("keydown", changeDirection);
+
+            //Contxt will give us objects and methods to draw on the canvas
+            var ctx = gameCanvas.getContext("2d");          
+
+            let dx = squareSize;
+            let dy = 0;
+            let foodX;
+            let foodY;
+            let score = 0;
+
+            let snake = [
+                {x: 150, y: 150},
+                {x: 140, y: 150},
+                {x: 130, y: 150},
+                {x: 120, y: 150},
+                {x: 110, y: 150}
+            ];
+
+            createFood();
+            main();
+            
+
+            function main() {
+
+                if(checkCollide()) return;
+
+                setTimeout(function onTick() {
+                    changingDirection = false;
+                    clearCanvas();
+                    drawFood();
+                    advanceSnake();
+                    checkPos();
+                    drawSnake();
+                    checkSnakeOnFood();
+                    // Call main again
+                    main();
+                }, 100)
+            }
+
+            function clearCanvas() {
+                ctx.fillStyle = CANVAS_BACKGROUND_COLOR;
+
+                ctx.strokestyle = CANVAS_BORDER_COLOR;
+
+                ctx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+                ctx.strokeRect(0, 0, gameCanvas.width, gameCanvas.height);
+            }
+
+            function drawSnakePart(snakePart) {
+                ctx.fillStyle = 'lightgreen';
+                ctx.strokestyle = 'darkgreen';
+                ctx.fillRect(snakePart.x,snakePart.y,squareSize,squareSize);
+                ctx.strokeRect(snakePart.x,snakePart.y,squareSize,squareSize);
+            }
+
+            function drawSnake() {
+                snake.forEach(drawSnakePart);
+            }
+
+            function advanceSnake() {
+                const head = { x: snake[0].x+dx, y: snake[0].y+dy }
+
+                snake.unshift(head);
+                const didEatFood = snake[0].x === foodX && snake[0].y === foodY;
+                if (didEatFood) {
+                    score += 10;
+                    document.getElementById('score').innerHTML = score;
+                    createFood();
+                } else {
+                    snake.pop();
+                }
+                //snake.pop();
+            }
+
+            function changeDirection(e) {
+                const LEFT_KEY = 37;
+                const RIGHT_KEY = 39;
+                const UP_KEY = 38;
+                const DOWN_KEY = 40;
+
+                if(changingDirection) return;
+
+                changingDirection = true;
+
+                const keyPressed = e.keyCode;
+                const goingUp = dy === -squareSize;
+                const goingDown = dy === squareSize;
+                const goingRight = dx === squareSize;
+                const goingLeft = dx === -squareSize;
+
+                if (keyPressed === LEFT_KEY && !goingRight) {
+                    dx = -squareSize;
+                    dy = 0;
+                }
+                if (keyPressed === UP_KEY && !goingDown) {
+                    dx = 0;
+                    dy = -squareSize;
+                }
+                if (keyPressed === RIGHT_KEY && !goingLeft) {
+                    dx = squareSize;
+                    dy = 0;
+                }
+                if (keyPressed === DOWN_KEY && !goingUp) {
+                    dx = 0;
+                    dy = squareSize;
+                }
+            }
+
+            function randomTen(min,max) {
+                return Math.round((Math.random() * (max - min) + min)/10) * 10;
+            }
+
+            function createFood() {
+                foodX = randomTen(0, gameCanvas.width - squareSize);
+                foodY = randomTen(0, gameCanvas.height - squareSize);
+
+                
+            }
+
+            function checkSnakeOnFood() {
+                snake.forEach(function isFoodOnSnake(part) {
+                    const foodIsOnSnake = part.x == foodX && part.y == foodY
+                        if (foodIsOnSnake)
+                            createFood();
+                })
+            }
+
+            function drawFood() {
+                ctx.fillStyle = 'red';
+                ctx.strokestyle = 'darkred';
+                ctx.fillRect(foodX, foodY, squareSize, squareSize);
+                ctx.strokeRect(foodX, foodY, squareSize, squareSize);
+            }
+
+            function checkPos() {
+                snake.forEach(changeSnakePosition)
+            }
+
+            function changeSnakePosition(snakePart) {
+                if(snakePart.x == -squareSize)
+                    snakePart.x = gameCanvas.width - squareSize   
+                if(snakePart.y == -squareSize)
+                    snakePart.y = gameCanvas.height - squareSize 
+                if(snakePart.x == gameCanvas.width + squareSize)
+                    snakePart.x = 0
+                if(snakePart.y == gameCanvas.height + squareSize)
+                    snakePart.y = 0
+            }
+
+            function checkCollide() {
+                let headX = snake[0].x;
+                let headY = snake[0].y;
+                let count = 0;
+
+                snake.forEach(function(snakePart){
+                    if(snakePart.x == headX && snakePart.y == headY)
+                        count++;
+                });
+
+                if(count == 2)
+                    return true;
+            }
+
+
+        </script>
+    </body>
+</html>
